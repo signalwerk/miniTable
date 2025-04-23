@@ -146,6 +146,15 @@
         </div>
       </div>
       
+      <div class="control-group">
+        <label>Stroke Size:</label>
+        <div class="input-wrapper">
+          <input type="range" id="strokeSize" min="1" max="5" value="2" step="0.5">
+          <input type="number" id="strokeSizeNum" min="1" max="5" value="2" step="0.5">
+          <span class="unit">px</span>
+        </div>
+      </div>
+      
       <button id="resetCamera">Reset Camera</button>
     </div>
     
@@ -167,6 +176,14 @@
         }
       });
       
+      // Global styling constants
+      const styles = {
+        fill: 'white',
+        stroke: 'black',
+        outlineOffset: 0.2, // Absolute size difference for outline in px
+        strokeWidth: 2
+      };
+      
       // Parameters
       let params = {
         topLength: 300,
@@ -174,11 +191,40 @@
         topHeight: 15,
         legHeight: 120,
         legWidth: 8,
-        barSize: 10
+        barSize: 10,
+        strokeSize: 2
       };
       
       // Store all table parts in an array
       let tableParts = [];
+      
+      // Create a box with fill and stroke
+      function createBox(options) {
+        // Create the filled inner box
+        const fillBox = new Zdog.Box({
+          addTo: illo,
+          width: options.width,
+          height: options.height,
+          depth: options.depth,
+          color: styles.fill,
+          stroke: false,
+          translate: options.translate,
+        });
+        tableParts.push(fillBox);
+        
+        // Create the stroked outer box (with absolute size difference)
+        const strokeBox = new Zdog.Box({
+          addTo: illo,
+          width: options.width + styles.outlineOffset,
+          height: options.height + styles.outlineOffset,
+          depth: options.depth + styles.outlineOffset,
+          color: styles.stroke,
+          fill: false,
+          stroke: styles.strokeWidth,
+          translate: options.translate,
+        });
+        tableParts.push(strokeBox);
+      }
       
       // Create table parts
       function createTable() {
@@ -186,17 +232,16 @@
         tableParts.forEach(part => part.remove());
         tableParts = [];
         
+        // Update global stroke width from parameters
+        styles.strokeWidth = params.strokeSize;
+        
         // Table top
-        tableParts.push(new Zdog.Box({
-          addTo: illo,
+        createBox({
           width: params.topLength,
           height: params.topHeight,
           depth: params.topWidth,
-          color: 'white',
-          stroke: 3,
-          strokeColor: 'black',
           translate: { y: -params.topHeight/2 },
-        }));
+        });
         
         // Legs
         const legPositions = [
@@ -207,79 +252,59 @@
         ];
         
         legPositions.forEach(pos => {
-          tableParts.push(new Zdog.Box({
-            addTo: illo,
+          createBox({
             width: params.legWidth,
             height: params.legHeight,
             depth: params.legWidth,
-            color: 'white',
-            stroke: 3,
-            strokeColor: 'black',
             translate: { 
               x: pos.x, 
               y: params.legHeight/2 + params.topHeight/2, 
               z: pos.z 
             },
-          }));
+          });
         });
         
         // Support bars (front and back)
-        tableParts.push(new Zdog.Box({
-          addTo: illo,
+        createBox({
           width: params.topLength - 2*params.legWidth,
           height: params.barSize,
           depth: params.barSize,
-          color: 'white',
-          stroke: 3,
-          strokeColor: 'black',
           translate: { 
             y: params.legHeight*0.3 + params.topHeight/2,
             z: params.topWidth/2 - params.legWidth/2 - params.barSize/2
           },
-        }));
+        });
         
-        tableParts.push(new Zdog.Box({
-          addTo: illo,
+        createBox({
           width: params.topLength - 2*params.legWidth,
           height: params.barSize,
           depth: params.barSize,
-          color: 'white',
-          stroke: 3,
-          strokeColor: 'black',
           translate: { 
             y: params.legHeight*0.3 + params.topHeight/2,
             z: -params.topWidth/2 + params.legWidth/2 + params.barSize/2
           },
-        }));
+        });
         
         // Support bars (left and right)
-        tableParts.push(new Zdog.Box({
-          addTo: illo,
+        createBox({
           width: params.barSize,
           height: params.barSize,
           depth: params.topWidth - 2*params.legWidth,
-          color: 'white',
-          stroke: 3,
-          strokeColor: 'black',
           translate: { 
             x: params.topLength/2 - params.legWidth/2 - params.barSize/2,
             y: params.legHeight*0.3 + params.topHeight/2
           },
-        }));
+        });
         
-        tableParts.push(new Zdog.Box({
-          addTo: illo,
+        createBox({
           width: params.barSize,
           height: params.barSize,
           depth: params.topWidth - 2*params.legWidth,
-          color: 'white',
-          stroke: 3,
-          strokeColor: 'black',
           translate: { 
             x: -params.topLength/2 + params.legWidth/2 + params.barSize/2,
             y: params.legHeight*0.3 + params.topHeight/2
           },
-        }));
+        });
       }
       
       // Initial table creation
@@ -304,7 +329,8 @@
         topHeight: document.getElementById('topHeight'),
         legHeight: document.getElementById('legHeight'),
         legWidth: document.getElementById('legWidth'),
-        barSize: document.getElementById('barSize')
+        barSize: document.getElementById('barSize'),
+        strokeSize: document.getElementById('strokeSize')
       };
       
       const numberInputs = {
@@ -313,14 +339,15 @@
         topHeight: document.getElementById('topHeightNum'),
         legHeight: document.getElementById('legHeightNum'),
         legWidth: document.getElementById('legWidthNum'),
-        barSize: document.getElementById('barSizeNum')
+        barSize: document.getElementById('barSizeNum'),
+        strokeSize: document.getElementById('strokeSizeNum')
       };
       
       // Update functions for sliders
       Object.keys(sliders).forEach(key => {
         // Update number input when slider changes
         sliders[key].addEventListener('input', () => {
-          const value = parseInt(sliders[key].value);
+          const value = parseFloat(sliders[key].value);
           params[key] = value;
           numberInputs[key].value = value;
           createTable();
@@ -328,10 +355,10 @@
         
         // Update slider when number input changes
         numberInputs[key].addEventListener('input', () => {
-          const value = parseInt(numberInputs[key].value);
+          const value = parseFloat(numberInputs[key].value);
           // Clamp value to min/max
-          const min = parseInt(sliders[key].min);
-          const max = parseInt(sliders[key].max);
+          const min = parseFloat(sliders[key].min);
+          const max = parseFloat(sliders[key].max);
           const clampedValue = Math.max(min, Math.min(max, value));
           
           params[key] = clampedValue;
