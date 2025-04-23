@@ -232,15 +232,18 @@
         });
         
         // Calculate leg inset distances
-        const lengthInset = params.topLength * styles.legInset;
-        const widthInset = params.topWidth * styles.legInset;
+        // First inset by bar size, then additional 10% of remaining space
+        const barSizeInsetX = params.barWidth;
+        const barSizeInsetZ = params.barHeight;
+        const lengthInset = barSizeInsetX + (params.topLength - 2*barSizeInsetX) * styles.legInset;
+        const widthInset = barSizeInsetZ + (params.topWidth - 2*barSizeInsetZ) * styles.legInset;
         
         // Legs
         const legPositions = [
-          { x: params.topLength/2 - lengthInset - params.barWidth/2, z: params.topWidth/2 - widthInset - params.barWidth/2 },
-          { x: -params.topLength/2 + lengthInset + params.barWidth/2, z: params.topWidth/2 - widthInset - params.barWidth/2 },
-          { x: -params.topLength/2 + lengthInset + params.barWidth/2, z: -params.topWidth/2 + widthInset + params.barWidth/2 },
-          { x: params.topLength/2 - lengthInset - params.barWidth/2, z: -params.topWidth/2 + widthInset + params.barWidth/2 }
+          { x: params.topLength/2 - lengthInset - params.barWidth/2, z: params.topWidth/2 - widthInset - params.barHeight/2 },
+          { x: -params.topLength/2 + lengthInset + params.barWidth/2, z: params.topWidth/2 - widthInset - params.barHeight/2 },
+          { x: -params.topLength/2 + lengthInset + params.barWidth/2, z: -params.topWidth/2 + widthInset + params.barHeight/2 },
+          { x: params.topLength/2 - lengthInset - params.barWidth/2, z: -params.topWidth/2 + widthInset + params.barHeight/2 }
         ];
         
         legPositions.forEach(pos => {
@@ -256,45 +259,45 @@
           });
         });
         
-        // Support bars (front and back)
+        // Support bars (front and back) - placed against the outer face of legs
         createBox({
-          width: params.topLength - 2*(lengthInset + params.barWidth),
+          width: params.topLength - 2*lengthInset - params.barWidth,
           height: params.barHeight,
           depth: params.barWidth,
           translate: { 
-            y: params.legHeight*0.3 + params.topHeight/2,
-            z: params.topWidth/2 - widthInset - params.barWidth/2 - params.barWidth/2
+            y: params.topHeight/2 + params.barHeight/2,
+            z: params.topWidth/2 - widthInset + params.barWidth/2
           },
         });
         
         createBox({
-          width: params.topLength - 2*(lengthInset + params.barWidth),
+          width: params.topLength - 2*lengthInset - params.barWidth,
           height: params.barHeight,
           depth: params.barWidth,
           translate: { 
-            y: params.legHeight*0.3 + params.topHeight/2,
-            z: -params.topWidth/2 + widthInset + params.barWidth/2 + params.barWidth/2
+            y: params.topHeight/2 + params.barHeight/2,
+            z: -(params.topWidth/2 - widthInset + params.barWidth/2)
           },
         });
         
-        // Support bars (left and right)
+        // Support bars (left and right) - placed against the outer face of legs
         createBox({
           width: params.barWidth,
           height: params.barHeight,
-          depth: params.topWidth - 2*(widthInset + params.barWidth),
+          depth: params.topWidth - 2*widthInset - params.barHeight,
           translate: { 
-            x: params.topLength/2 - lengthInset - params.barWidth/2 - params.barWidth/2,
-            y: params.legHeight*0.3 + params.topHeight/2
+            x: params.topLength/2 - lengthInset + params.barWidth/2,
+            y: params.topHeight/2 + params.barHeight/2
           },
         });
         
         createBox({
           width: params.barWidth,
           height: params.barHeight,
-          depth: params.topWidth - 2*(widthInset + params.barWidth),
+          depth: params.topWidth - 2*widthInset - params.barHeight,
           translate: { 
-            x: -params.topLength/2 + lengthInset + params.barWidth/2 + params.barWidth/2,
-            y: params.legHeight*0.3 + params.topHeight/2
+            x: -(params.topLength/2 - lengthInset + params.barWidth/2),
+            y: params.topHeight/2 + params.barHeight/2
           },
         });
       }
