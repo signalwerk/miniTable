@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>miniTable - Zdog 3D Model</title>
+    <script src="https://unpkg.com/zdog@1/dist/zdog.dist.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+        display: flex;
+        height: 100vh;
+        background-color: #f5f5f5;
+      }
+      
+      #controls {
+        width: 300px;
+        padding: 20px;
+        background-color: #f0f0f0;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+      }
+      
+      #canvas-container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffeb3b; /* Yellow background */
+      }
+      
+      canvas {
+        display: block;
+        cursor: move;
+      }
+      
+      .control-group {
+        margin-bottom: 15px;
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      
+      input[type="range"] {
+        width: 100%;
+      }
+      
+      .value-display {
+        font-size: 12px;
+        color: #666;
+        margin-left: 5px;
+      }
+      
+      h1 {
+        margin-top: 0;
+        font-size: 24px;
+      }
+      
+      button {
+        padding: 8px 12px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      
+      button:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <h1>miniTable</h1>
+      
+      <div class="control-group">
+        <label>Table Top Length: <span id="topLengthValue" class="value-display">300</span></label>
+        <input type="range" id="topLength" min="200" max="500" value="300">
+      </div>
+      
+      <div class="control-group">
+        <label>Table Top Width: <span id="topWidthValue" class="value-display">150</span></label>
+        <input type="range" id="topWidth" min="100" max="300" value="150">
+      </div>
+      
+      <div class="control-group">
+        <label>Table Top Height/Thickness: <span id="topHeightValue" class="value-display">15</span></label>
+        <input type="range" id="topHeight" min="5" max="30" value="15">
+      </div>
+      
+      <div class="control-group">
+        <label>Leg Height: <span id="legHeightValue" class="value-display">120</span></label>
+        <input type="range" id="legHeight" min="50" max="200" value="120">
+      </div>
+      
+      <div class="control-group">
+        <label>Leg Width: <span id="legWidthValue" class="value-display">8</span></label>
+        <input type="range" id="legWidth" min="5" max="20" value="8">
+      </div>
+      
+      <div class="control-group">
+        <label>Support Bar Width: <span id="barWidthValue" class="value-display">10</span></label>
+        <input type="range" id="barWidth" min="5" max="20" value="10">
+      </div>
+      
+      <div class="control-group">
+        <label>Support Bar Height: <span id="barHeightValue" class="value-display">8</span></label>
+        <input type="range" id="barHeight" min="5" max="20" value="8">
+      </div>
+      
+      <button id="resetCamera">Reset Camera</button>
+    </div>
+    
+    <div id="canvas-container">
+      <canvas id="zdog-canvas" width="800" height="600"></canvas>
+    </div>
+
+    <script>
+      // Initialize Zdog illustration
+      const illo = new Zdog.Illustration({
+        element: '#zdog-canvas',
+        dragRotate: true,
+        zoom: 1.5,
+        rotate: { x: -0.3, y: 0.6 }
+      });
+      
+      // Parameters
+      let params = {
+        topLength: 300,
+        topWidth: 150,
+        topHeight: 15,
+        legHeight: 120,
+        legWidth: 8,
+        barWidth: 10,
+        barHeight: 8
+      };
+      
+      // Group for the entire table
+      const tableGroup = new Zdog.Group({
+        addTo: illo
+      });
+      
+      // Create table parts
+      function createTable() {
+        // Clear existing elements
+        tableGroup.children = [];
+        
+        // Table top
+        new Zdog.Box({
+          addTo: tableGroup,
+          width: params.topLength,
+          height: params.topHeight,
+          depth: params.topWidth,
+          color: 'white',
+          stroke: 2,
+          strokeColor: 'black',
+          translate: { y: -params.topHeight/2 },
+        });
+        
+        // Legs
+        const legPositions = [
+          { x: params.topLength/2 - params.legWidth/2, z: params.topWidth/2 - params.legWidth/2 },
+          { x: -params.topLength/2 + params.legWidth/2, z: params.topWidth/2 - params.legWidth/2 },
+          { x: -params.topLength/2 + params.legWidth/2, z: -params.topWidth/2 + params.legWidth/2 },
+          { x: params.topLength/2 - params.legWidth/2, z: -params.topWidth/2 + params.legWidth/2 }
+        ];
+        
+        legPositions.forEach(pos => {
+          new Zdog.Box({
+            addTo: tableGroup,
+            width: params.legWidth,
+            height: params.legHeight,
+            depth: params.legWidth,
+            color: 'white',
+            stroke: 2,
+            strokeColor: 'black',
+            translate: { 
+              x: pos.x, 
+              y: params.legHeight/2 + params.topHeight/2, 
+              z: pos.z 
+            },
+          });
+        });
+        
+        // Support bars (front and back)
+        new Zdog.Box({
+          addTo: tableGroup,
+          width: params.topLength - 2*params.legWidth,
+          height: params.barHeight,
+          depth: params.barWidth,
+          color: 'white',
+          stroke: 2,
+          strokeColor: 'black',
+          translate: { 
+            y: params.legHeight*0.3 + params.topHeight/2,
+            z: params.topWidth/2 - params.legWidth/2 - params.barWidth/2
+          },
+        });
+        
+        new Zdog.Box({
+          addTo: tableGroup,
+          width: params.topLength - 2*params.legWidth,
+          height: params.barHeight,
+          depth: params.barWidth,
+          color: 'white',
+          stroke: 2,
+          strokeColor: 'black',
+          translate: { 
+            y: params.legHeight*0.3 + params.topHeight/2,
+            z: -params.topWidth/2 + params.legWidth/2 + params.barWidth/2
+          },
+        });
+        
+        // Support bars (left and right)
+        new Zdog.Box({
+          addTo: tableGroup,
+          width: params.barWidth,
+          height: params.barHeight,
+          depth: params.topWidth - 2*params.legWidth,
+          color: 'white',
+          stroke: 2,
+          strokeColor: 'black',
+          translate: { 
+            x: params.topLength/2 - params.legWidth/2 - params.barWidth/2,
+            y: params.legHeight*0.3 + params.topHeight/2
+          },
+        });
+        
+        new Zdog.Box({
+          addTo: tableGroup,
+          width: params.barWidth,
+          height: params.barHeight,
+          depth: params.topWidth - 2*params.legWidth,
+          color: 'white',
+          stroke: 2,
+          strokeColor: 'black',
+          translate: { 
+            x: -params.topLength/2 + params.legWidth/2 + params.barWidth/2,
+            y: params.legHeight*0.3 + params.topHeight/2
+          },
+        });
+      }
+      
+      // Initial table creation
+      createTable();
+      
+      // Animation loop
+      function animate() {
+        illo.updateRenderGraph();
+        requestAnimationFrame(animate);
+      }
+      animate();
+      
+      // UI controls
+      const controls = {
+        topLength: document.getElementById('topLength'),
+        topWidth: document.getElementById('topWidth'),
+        topHeight: document.getElementById('topHeight'),
+        legHeight: document.getElementById('legHeight'),
+        legWidth: document.getElementById('legWidth'),
+        barWidth: document.getElementById('barWidth'),
+        barHeight: document.getElementById('barHeight')
+      };
+      
+      const valueDisplays = {
+        topLength: document.getElementById('topLengthValue'),
+        topWidth: document.getElementById('topWidthValue'),
+        topHeight: document.getElementById('topHeightValue'),
+        legHeight: document.getElementById('legHeightValue'),
+        legWidth: document.getElementById('legWidthValue'),
+        barWidth: document.getElementById('barWidthValue'),
+        barHeight: document.getElementById('barHeightValue')
+      };
+      
+      // Update functions
+      Object.keys(controls).forEach(key => {
+        controls[key].addEventListener('input', () => {
+          params[key] = parseInt(controls[key].value);
+          valueDisplays[key].textContent = params[key];
+          createTable();
+        });
+      });
+      
+      // Reset camera
+      document.getElementById('resetCamera').addEventListener('click', () => {
+        illo.rotate.x = -0.3;
+        illo.rotate.y = 0.6;
+        illo.rotate.z = 0;
+      });
+    </script>
+  </body>
+</html>
