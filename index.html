@@ -181,7 +181,8 @@
         fill: 'white',
         stroke: 'black',
         outlineOffset: 0.2, // Absolute size difference for outline in px
-        strokeWidth: 2
+        strokeWidth: 2,
+        legInset: 0.1 // Inset legs by 10% from edges
       };
       
       // Parameters
@@ -243,12 +244,16 @@
           translate: { y: -params.topHeight/2 },
         });
         
+        // Calculate leg inset distances
+        const lengthInset = params.topLength * styles.legInset;
+        const widthInset = params.topWidth * styles.legInset;
+        
         // Legs
         const legPositions = [
-          { x: params.topLength/2 - params.legWidth/2, z: params.topWidth/2 - params.legWidth/2 },
-          { x: -params.topLength/2 + params.legWidth/2, z: params.topWidth/2 - params.legWidth/2 },
-          { x: -params.topLength/2 + params.legWidth/2, z: -params.topWidth/2 + params.legWidth/2 },
-          { x: params.topLength/2 - params.legWidth/2, z: -params.topWidth/2 + params.legWidth/2 }
+          { x: params.topLength/2 - lengthInset - params.legWidth/2, z: params.topWidth/2 - widthInset - params.legWidth/2 },
+          { x: -params.topLength/2 + lengthInset + params.legWidth/2, z: params.topWidth/2 - widthInset - params.legWidth/2 },
+          { x: -params.topLength/2 + lengthInset + params.legWidth/2, z: -params.topWidth/2 + widthInset + params.legWidth/2 },
+          { x: params.topLength/2 - lengthInset - params.legWidth/2, z: -params.topWidth/2 + widthInset + params.legWidth/2 }
         ];
         
         legPositions.forEach(pos => {
@@ -266,22 +271,22 @@
         
         // Support bars (front and back)
         createBox({
-          width: params.topLength - 2*params.legWidth,
+          width: params.topLength - 2*(lengthInset + params.legWidth),
           height: params.barSize,
           depth: params.barSize,
           translate: { 
             y: params.legHeight*0.3 + params.topHeight/2,
-            z: params.topWidth/2 - params.legWidth/2 - params.barSize/2
+            z: params.topWidth/2 - widthInset - params.legWidth/2 - params.barSize/2
           },
         });
         
         createBox({
-          width: params.topLength - 2*params.legWidth,
+          width: params.topLength - 2*(lengthInset + params.legWidth),
           height: params.barSize,
           depth: params.barSize,
           translate: { 
             y: params.legHeight*0.3 + params.topHeight/2,
-            z: -params.topWidth/2 + params.legWidth/2 + params.barSize/2
+            z: -params.topWidth/2 + widthInset + params.legWidth/2 + params.barSize/2
           },
         });
         
@@ -289,9 +294,9 @@
         createBox({
           width: params.barSize,
           height: params.barSize,
-          depth: params.topWidth - 2*params.legWidth,
+          depth: params.topWidth - 2*(widthInset + params.legWidth),
           translate: { 
-            x: params.topLength/2 - params.legWidth/2 - params.barSize/2,
+            x: params.topLength/2 - lengthInset - params.legWidth/2 - params.barSize/2,
             y: params.legHeight*0.3 + params.topHeight/2
           },
         });
@@ -299,9 +304,9 @@
         createBox({
           width: params.barSize,
           height: params.barSize,
-          depth: params.topWidth - 2*params.legWidth,
+          depth: params.topWidth - 2*(widthInset + params.legWidth),
           translate: { 
-            x: -params.topLength/2 + params.legWidth/2 + params.barSize/2,
+            x: -params.topLength/2 + lengthInset + params.legWidth/2 + params.barSize/2,
             y: params.legHeight*0.3 + params.topHeight/2
           },
         });
