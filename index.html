@@ -120,38 +120,29 @@
       </div>
       
       <div class="control-group">
+        <label>Bar/Leg Width:</label>
+        <div class="input-wrapper">
+          <input type="range" id="barWidth" min="5" max="20" value="10">
+          <input type="number" id="barWidthNum" min="5" max="20" value="10">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label>Bar/Leg Height:</label>
+        <div class="input-wrapper">
+          <input type="range" id="barHeight" min="5" max="20" value="10">
+          <input type="number" id="barHeightNum" min="5" max="20" value="10">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
         <label>Leg Height:</label>
         <div class="input-wrapper">
           <input type="range" id="legHeight" min="50" max="200" value="120">
           <input type="number" id="legHeightNum" min="50" max="200" value="120">
           <span class="unit">mm</span>
-        </div>
-      </div>
-      
-      <div class="control-group">
-        <label>Leg Width:</label>
-        <div class="input-wrapper">
-          <input type="range" id="legWidth" min="5" max="20" value="8">
-          <input type="number" id="legWidthNum" min="5" max="20" value="8">
-          <span class="unit">mm</span>
-        </div>
-      </div>
-      
-      <div class="control-group">
-        <label>Support Bar Size:</label>
-        <div class="input-wrapper">
-          <input type="range" id="barSize" min="5" max="20" value="10">
-          <input type="number" id="barSizeNum" min="5" max="20" value="10">
-          <span class="unit">mm</span>
-        </div>
-      </div>
-      
-      <div class="control-group">
-        <label>Stroke Size:</label>
-        <div class="input-wrapper">
-          <input type="range" id="strokeSize" min="1" max="5" value="2" step="0.5">
-          <input type="number" id="strokeSizeNum" min="1" max="5" value="2" step="0.5">
-          <span class="unit">px</span>
         </div>
       </div>
       
@@ -181,7 +172,7 @@
         fill: 'white',
         stroke: 'black',
         outlineOffset: 0.2, // Absolute size difference for outline in px
-        strokeWidth: 2,
+        strokeWidth: 2, // Fixed stroke width value
         legInset: 0.1 // Inset legs by 10% from edges
       };
       
@@ -191,9 +182,8 @@
         topWidth: 150,
         topHeight: 15,
         legHeight: 120,
-        legWidth: 8,
-        barSize: 10,
-        strokeSize: 2
+        barWidth: 10,
+        barHeight: 10
       };
       
       // Store all table parts in an array
@@ -233,9 +223,6 @@
         tableParts.forEach(part => part.remove());
         tableParts = [];
         
-        // Update global stroke width from parameters
-        styles.strokeWidth = params.strokeSize;
-        
         // Table top
         createBox({
           width: params.topLength,
@@ -250,17 +237,17 @@
         
         // Legs
         const legPositions = [
-          { x: params.topLength/2 - lengthInset - params.legWidth/2, z: params.topWidth/2 - widthInset - params.legWidth/2 },
-          { x: -params.topLength/2 + lengthInset + params.legWidth/2, z: params.topWidth/2 - widthInset - params.legWidth/2 },
-          { x: -params.topLength/2 + lengthInset + params.legWidth/2, z: -params.topWidth/2 + widthInset + params.legWidth/2 },
-          { x: params.topLength/2 - lengthInset - params.legWidth/2, z: -params.topWidth/2 + widthInset + params.legWidth/2 }
+          { x: params.topLength/2 - lengthInset - params.barWidth/2, z: params.topWidth/2 - widthInset - params.barWidth/2 },
+          { x: -params.topLength/2 + lengthInset + params.barWidth/2, z: params.topWidth/2 - widthInset - params.barWidth/2 },
+          { x: -params.topLength/2 + lengthInset + params.barWidth/2, z: -params.topWidth/2 + widthInset + params.barWidth/2 },
+          { x: params.topLength/2 - lengthInset - params.barWidth/2, z: -params.topWidth/2 + widthInset + params.barWidth/2 }
         ];
         
         legPositions.forEach(pos => {
           createBox({
-            width: params.legWidth,
+            width: params.barWidth,
             height: params.legHeight,
-            depth: params.legWidth,
+            depth: params.barHeight,
             translate: { 
               x: pos.x, 
               y: params.legHeight/2 + params.topHeight/2, 
@@ -271,42 +258,42 @@
         
         // Support bars (front and back)
         createBox({
-          width: params.topLength - 2*(lengthInset + params.legWidth),
-          height: params.barSize,
-          depth: params.barSize,
+          width: params.topLength - 2*(lengthInset + params.barWidth),
+          height: params.barHeight,
+          depth: params.barWidth,
           translate: { 
             y: params.legHeight*0.3 + params.topHeight/2,
-            z: params.topWidth/2 - widthInset - params.legWidth/2 - params.barSize/2
+            z: params.topWidth/2 - widthInset - params.barWidth/2 - params.barWidth/2
           },
         });
         
         createBox({
-          width: params.topLength - 2*(lengthInset + params.legWidth),
-          height: params.barSize,
-          depth: params.barSize,
+          width: params.topLength - 2*(lengthInset + params.barWidth),
+          height: params.barHeight,
+          depth: params.barWidth,
           translate: { 
             y: params.legHeight*0.3 + params.topHeight/2,
-            z: -params.topWidth/2 + widthInset + params.legWidth/2 + params.barSize/2
+            z: -params.topWidth/2 + widthInset + params.barWidth/2 + params.barWidth/2
           },
         });
         
         // Support bars (left and right)
         createBox({
-          width: params.barSize,
-          height: params.barSize,
-          depth: params.topWidth - 2*(widthInset + params.legWidth),
+          width: params.barWidth,
+          height: params.barHeight,
+          depth: params.topWidth - 2*(widthInset + params.barWidth),
           translate: { 
-            x: params.topLength/2 - lengthInset - params.legWidth/2 - params.barSize/2,
+            x: params.topLength/2 - lengthInset - params.barWidth/2 - params.barWidth/2,
             y: params.legHeight*0.3 + params.topHeight/2
           },
         });
         
         createBox({
-          width: params.barSize,
-          height: params.barSize,
-          depth: params.topWidth - 2*(widthInset + params.legWidth),
+          width: params.barWidth,
+          height: params.barHeight,
+          depth: params.topWidth - 2*(widthInset + params.barWidth),
           translate: { 
-            x: -params.topLength/2 + lengthInset + params.legWidth/2 + params.barSize/2,
+            x: -params.topLength/2 + lengthInset + params.barWidth/2 + params.barWidth/2,
             y: params.legHeight*0.3 + params.topHeight/2
           },
         });
@@ -333,9 +320,8 @@
         topWidth: document.getElementById('topWidth'),
         topHeight: document.getElementById('topHeight'),
         legHeight: document.getElementById('legHeight'),
-        legWidth: document.getElementById('legWidth'),
-        barSize: document.getElementById('barSize'),
-        strokeSize: document.getElementById('strokeSize')
+        barWidth: document.getElementById('barWidth'),
+        barHeight: document.getElementById('barHeight')
       };
       
       const numberInputs = {
@@ -343,9 +329,8 @@
         topWidth: document.getElementById('topWidthNum'),
         topHeight: document.getElementById('topHeightNum'),
         legHeight: document.getElementById('legHeightNum'),
-        legWidth: document.getElementById('legWidthNum'),
-        barSize: document.getElementById('barSizeNum'),
-        strokeSize: document.getElementById('strokeSizeNum')
+        barWidth: document.getElementById('barWidthNum'),
+        barHeight: document.getElementById('barHeightNum')
       };
       
       // Update functions for sliders
