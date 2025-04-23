@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>miniTable - Three.js 3D Model</title>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <title>miniTable - Three.js Line-Art Model</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.136.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.136.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.5/dat.gui.min.js"></script>
     <style>
       body {
         margin: 0;
@@ -86,6 +87,11 @@
 
       button:hover {
         background-color: #45a049;
+      }
+
+      /* Added style for dat.gui */
+      .dg.ac {
+        z-index: 1000 !important;
       }
     </style>
   </head>
@@ -179,6 +185,41 @@
     </div>
 
     <script>
+      // Shader definitions
+      const vertexShader = `
+        varying vec2 vUv;
+        varying vec3 vPosition;
+        
+        void main() {
+          vUv = uv;
+          vPosition = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `;
+      
+      const fragmentShader = `
+        varying vec2 vUv;
+        varying vec3 vPosition;
+        uniform float thickness;
+        uniform vec3 color;
+        uniform vec3 backgroundColor;
+        
+        float edgeFactor(vec2 p) {
+          vec2 grid = abs(fract(p - 0.5) - 0.5) / fwidth(p) / thickness;
+          return min(grid.x, grid.y);
+        }
+        
+        void main() {
+          // Create grid lines on all faces
+          float a = edgeFactor(vUv);
+          
+          // Mix the line color with the background color
+          vec3 finalColor = mix(color, backgroundColor, a);
+          
+          gl_FragColor = vec4(finalColor, 1.0);
+        }
+      `;
+
       // Initialize Three.js scene
       const canvasContainer = document.getElementById("canvas-container");
       const canvas = document.getElementById("three-canvas");
@@ -207,14 +248,6 @@
       });
       renderer.setSize(canvas.width, canvas.height);
 
-      // Add lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-      scene.add(ambientLight);
-
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(1, 1, 1);
-      scene.add(directionalLight);
-
       // OrbitControls
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
@@ -241,22 +274,39 @@
       const tableGroup = new THREE.Group();
       scene.add(tableGroup);
       
-      // Initial rotation to match original orientation
-      // tableGroup.rotation.x = -Math.PI / 6; // Adjusted rotation to put table top on top
-      
-      // Scale factor to make the model fit well in the scene (similar to Zdog's zoom)
+      // Scale factor to make the model fit well in the scene
       const scaleFactor = 0.5;
       tableGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-      // Global styling constants
-      const styles = {
-        fill: "rgb(255, 255, 255)",
-        stroke: "black",
-        outlineOffset: 0.2,
-        strokeWidth: 6,
-        legInset: 0.1,
-      };
-
+      // Shader material for line-art effect
+      const lineMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          thickness: { value: 1.5 },
+          color: { value: new THREE.Color(0x000000) },
+          backgroundColor: { value: new THREE.Color(0xffffff) }
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        transparent: true
+      });
+      
+      // Create GUI for shader controls
+      const gui = new dat.GUI({ autoPlace: true });
+      gui.domElement.style.position = 'absolute';
+      gui.domElement.style.top = '10px';
+      gui.domElement.style.right = '10px';
+      
+      gui.add(lineMaterial.uniforms.thickness, 'value', 0.5, 3.0).name('Line Thickness');
+      const colorController = gui.addColor({ color: '#000000' }, 'color').name('Line Color');
+      colorController.onChange(function(value) {
+        lineMaterial.uniforms.color.value.set(value);
+      });
+      
+      const bgColorController = gui.addColor({ color: '#ffffff' }, 'color').name('Fill Color');
+      bgColorController.onChange(function(value) {
+        lineMaterial.uniforms.backgroundColor.value.set(value);
+      });
+      
       // Parameters
       let params = {
         topLength: 1200,
@@ -266,77 +316,57 @@
         barWidth: 30,
         barHeight: 50,
       };
-
-      // Materials
-      const fillMaterial = new THREE.MeshLambertMaterial({
-        color: 0xffffff,
-        // opacity: 0.7,
-        transparent: true,
-      });
-
-      const strokeMaterial = new THREE.LineBasicMaterial({
-        color: 0x000000,
-        linewidth: 20, // Note: linewidth may not work on all platforms due to WebGL limitations
-      });
-
-      // Create a box with fill and outline
+      
+      // Create a box with the line-art shader
       function createBox(options) {
-        // Inner box (filled)
+        // Create the box geometry
         const geometry = new THREE.BoxGeometry(
-          options.width,
-          options.height,
+          options.width, 
+          options.height, 
           options.depth,
         );
-
-        const mesh = new THREE.Mesh(geometry, fillMaterial);
-
+        
+        // Create the mesh with the line-art material
+        const mesh = new THREE.Mesh(geometry, lineMaterial);
+        
+        // Set position
         if (options.translate) {
           mesh.position.set(
             options.translate.x || 0,
-            -(options.translate.y || 0), // Invert Y position to fix orientation
+            -(options.translate.y || 0), // Invert Y position for correct orientation
             options.translate.z || 0,
           );
         }
-
+        
         tableGroup.add(mesh);
-
-        // Create edges (outline)
-        const edgesGeometry = new THREE.EdgesGeometry(geometry);
-        const outline = new THREE.LineSegments(edgesGeometry, strokeMaterial);
-
-        // Match the position of the main mesh
-        outline.position.copy(mesh.position);
-
-        tableGroup.add(outline);
-
-        return { mesh, outline };
+        return mesh;
       }
-
+      
       // Create table parts
       function createTable() {
         // Remove all existing parts
         while (tableGroup.children.length > 0) {
           const child = tableGroup.children[0];
           tableGroup.remove(child);
-
+          
           // Dispose geometries to prevent memory leaks
           if (child.geometry) {
             child.geometry.dispose();
           }
         }
-
+        
         // Table top
         createBox({
           width: params.topLength,
           height: params.topHeight,
           depth: params.topWidth,
         });
-
+        
         // Calculate leg inset distances
         const barSizeInset = Math.min(params.barWidth, params.barHeight) * 3;
         const lengthInset = barSizeInset;
         const widthInset = barSizeInset;
-
+        
         // Legs
         const legPositions = [
           {
@@ -356,7 +386,7 @@
             z: -params.topWidth / 2 + widthInset + params.barHeight / 2,
           },
         ];
-
+        
         legPositions.forEach((pos) => {
           createBox({
             width: params.barWidth,
@@ -369,7 +399,7 @@
             },
           });
         });
-
+        
         // Support bars (front and back)
         createBox({
           width:
@@ -383,7 +413,7 @@
             z: params.topWidth / 2 - widthInset + params.barWidth / 2,
           },
         });
-
+        
         createBox({
           width:
             params.topLength -
@@ -396,7 +426,7 @@
             z: -(params.topWidth / 2 - widthInset + params.barWidth / 2),
           },
         });
-
+        
         // Support bars (left and right)
         createBox({
           width: params.barWidth,
@@ -410,7 +440,7 @@
             y: params.topHeight / 2 + params.barHeight / 2 + params.barHeight,
           },
         });
-
+        
         createBox({
           width: params.barWidth,
           height: params.barHeight,
@@ -424,31 +454,31 @@
           },
         });
       }
-
+      
       // Initial table creation
       createTable();
-
+      
       // Handle window resize
       window.addEventListener("resize", () => {
         canvas.width = canvasContainer.clientWidth;
         canvas.height = canvasContainer.clientHeight;
-
+        
         camera.aspect = canvas.width / canvas.height;
         camera.updateProjectionMatrix();
-
+        
         renderer.setSize(canvas.width, canvas.height);
       });
-
+      
       // Animation loop
       function animate() {
         requestAnimationFrame(animate);
-
+        
         controls.update(); // Required for OrbitControls
-
+        
         renderer.render(scene, camera);
       }
       animate();
-
+      
       // UI controls
       const sliders = {
         topLength: document.getElementById("topLength"),
@@ -458,7 +488,7 @@
         barWidth: document.getElementById("barWidth"),
         barHeight: document.getElementById("barHeight"),
       };
-
+      
       const numberInputs = {
         topLength: document.getElementById("topLengthNum"),
         topWidth: document.getElementById("topWidthNum"),
@@ -467,7 +497,7 @@
         barWidth: document.getElementById("barWidthNum"),
         barHeight: document.getElementById("barHeightNum"),
       };
-
+      
       // Update functions for sliders
       Object.keys(sliders).forEach((key) => {
         // Update number input when slider changes
@@ -477,7 +507,7 @@
           numberInputs[key].value = value;
           createTable();
         });
-
+        
         // Update slider when number input changes
         numberInputs[key].addEventListener("input", () => {
           const value = parseFloat(numberInputs[key].value);
@@ -485,23 +515,18 @@
           const min = parseFloat(sliders[key].min);
           const max = parseFloat(sliders[key].max);
           const clampedValue = Math.max(min, Math.min(max, value));
-
+          
           params[key] = clampedValue;
           numberInputs[key].value = clampedValue;
           sliders[key].value = clampedValue;
           createTable();
         });
       });
-
+      
       // Reset camera
       document.getElementById("resetCamera").addEventListener("click", () => {
         // Reset camera to initial position
         controls.reset();
-        
-        // Reset table orientation
-        tableGroup.rotation.x = -Math.PI / 6; // Adjusted rotation to put table top on top
-        tableGroup.rotation.y = 0;
-        tableGroup.rotation.z = 0;
         
         // Enable auto-rotation again
         isAutoRotating = true;
