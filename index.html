@@ -261,7 +261,7 @@
         
         // Support bars (front and back) - placed against the outer face of legs
         createBox({
-          width: params.topLength - 2*lengthInset - params.barWidth,
+          width: params.topLength - 2*(lengthInset - params.barWidth/2) + Math.min(params.barWidth, params.barHeight),
           height: params.barHeight,
           depth: params.barWidth,
           translate: { 
@@ -271,7 +271,7 @@
         });
         
         createBox({
-          width: params.topLength - 2*lengthInset - params.barWidth,
+          width: params.topLength - 2*(lengthInset - params.barWidth/2) + Math.min(params.barWidth, params.barHeight),
           height: params.barHeight,
           depth: params.barWidth,
           translate: { 
@@ -284,7 +284,7 @@
         createBox({
           width: params.barWidth,
           height: params.barHeight,
-          depth: params.topWidth - 2*widthInset - params.barHeight,
+          depth: params.topWidth - 2*(widthInset - params.barHeight/2) + Math.min(params.barWidth, params.barHeight),
           translate: { 
             x: params.topLength/2 - lengthInset + params.barWidth/2,
             y: params.topHeight/2 + params.barHeight/2
@@ -294,7 +294,7 @@
         createBox({
           width: params.barWidth,
           height: params.barHeight,
-          depth: params.topWidth - 2*widthInset - params.barHeight,
+          depth: params.topWidth - 2*(widthInset - params.barHeight/2) + Math.min(params.barWidth, params.barHeight),
           translate: { 
             x: -(params.topLength/2 - lengthInset + params.barWidth/2),
             y: params.topHeight/2 + params.barHeight/2
