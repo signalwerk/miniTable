@@ -3,60 +3,178 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>miniTable - Three.js Line-Art Model</title>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.136.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.136.0/examples/js/controls/OrbitControls.js"></script>
+    <title>miniTable</title>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/"
+        }
+      }
+    </script>
+
     <style>
-      body {
+      html {
+        font-size: 16px; /* Base font size for rem calculations */
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      * {
         margin: 0;
         padding: 0;
+        font: inherit; /* Get rid of all font sizes and heights */
+      }
+
+      body {
         font-family: system-ui, -apple-system, sans-serif;
         height: 100vh;
         overflow: hidden;
         background-color: #ffeb3b; /* Yellow background */
       }
-      
+
+      h1,
+      h3 {
+        margin-bottom: 1.25em;
+        font-weight: 600;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      h3 {
+        font-size: 0.9rem;
+      }
+
+      input[type="range"] {
+        accent-color: #000000;
+        flex: 1;
+        height: 1.5rem;
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      /* Webkit browsers (Chrome, Safari, Edge) */
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 0.25rem;
+        background-color: #000;
+        border-radius: 0.125rem;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -0.5rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        background-color: #000;
+        border: 2px solid #000;
+        border-radius: 50%;
+      }
+
+      input[type="range"]:focus::-webkit-slider-thumb {
+        background-color: #000;
+        border-color: #000;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Firefox */
+      input[type="range"]::-moz-range-track {
+        height: 0.25rem;
+        background-color: #000;
+        border-radius: 0.125rem;
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 1.25rem;
+        height: 1.25rem;
+        background-color: #000;
+        border: 2px solid #000;
+        border-radius: 50%;
+      }
+
+      input[type="range"]:focus::-moz-range-thumb {
+        background-color: #000;
+        border-color: #000;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+      }
+
       #controls {
         position: absolute;
         left: 0;
         top: 0;
         bottom: 0;
-        width: 300px;
-        padding: 20px;
-        background-color: rgba(240, 240, 240, 0.9);
+        width: 18.75rem;
+        padding: 5.625rem 1.25rem 1.25rem 1.25rem;
+        background-color: rgba(240, 240, 240, 0.91);
         border-right: 1px solid #ddd;
         overflow-y: auto;
         z-index: 10;
         transition: transform 0.3s ease;
       }
-      
+
       #controls.hidden {
         transform: translateX(-100%);
       }
-      
+
       #toggle-controls {
         position: absolute;
-        left: 20px;
-        top: 20px;
+        left: 1.25rem;
+        top: 1.25rem;
         z-index: 20;
-        width: 40px;
-        height: 40px;
-        background-color: #4caf50;
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: #000000;
         color: white;
         border: none;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 20px;
+        font-size: 1.25rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 0.125rem 0.3125rem rgba(0, 0, 0, 0.2); /* 0 2px 5px */
+        line-height: 1;
       }
-      
+
+      #toggle-controls-text {
+        display: block;
+        transform: translateY(-0.125rem);
+      }
+
       #toggle-controls:hover {
-        background-color: #45a049;
+        background-color: #333333;
       }
-      
+
+      #info-text {
+        position: fixed;
+        top: 0.9375rem;
+        right: 1.25rem;
+        font-size: 0.75rem;
+        color: #000;
+        z-index: 5;
+        text-align: right;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      #info-text a {
+        color: #000;
+        text-decoration: none;
+      }
+
+      #info-text a:hover {
+        text-decoration: underline;
+      }
+
       #canvas-container {
         position: absolute;
         left: 0;
@@ -64,74 +182,103 @@
         width: 100%;
         height: 100%;
       }
-      
+
       canvas {
         display: block;
         width: 100%;
         height: 100%;
         cursor: move;
       }
-      
+
       .control-group {
-        margin-bottom: 15px;
+        margin-bottom: 0.9375rem;
       }
-      
+
       label {
         display: block;
-        margin-bottom: 5px;
+        margin-bottom: 0.3125rem;
         font-weight: bold;
       }
-      
+
       .input-wrapper {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 0.625rem;
       }
-      
-      input[type="range"] {
-        flex: 1;
-      }
-      
+
       input[type="number"] {
-        width: 60px;
-        padding: 4px;
+        width: 4.25rem;
+        padding: 0.25rem;
         border: 1px solid #ccc;
-        border-radius: 3px;
+        border-radius: 0.125em;
       }
-      
+
       .unit {
-        font-size: 12px;
+        font-size: 0.75rem;
         color: #666;
       }
-      
+
       h1 {
         margin-top: 0;
-        font-size: 24px;
+        font-size: 1.5rem;
       }
-      
+
       button {
-        padding: 8px 12px;
-        background-color: #4caf50;
+        padding: 0.5rem 1rem;
+        background-color: #000000;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 0.125em;
         cursor: pointer;
-        margin-top: 10px;
       }
-      
+
       button:hover {
-        background-color: #45a049;
+        background-color: #333333;
+      }
+
+      #parts-info {
+        margin-top: 2rem;
+        font-size: 0.75rem;
+      }
+
+      .part-item {
+        margin-bottom: 0.5rem;
+      }
+
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      #panel-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 5;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+      }
+
+      #panel-backdrop.visible {
+        opacity: 1;
+        visibility: visible;
       }
     </style>
   </head>
   <body>
-    <button id="toggle-controls">☰</button>
-    
+    <button id="toggle-controls">
+      <span id="toggle-controls-text">☰</span>
+    </button>
+
+    <div id="panel-backdrop"></div>
+
     <div id="controls">
       <h1>miniTable</h1>
-      
+
       <div class="control-group">
-        <label>Table Top Length:</label>
+        <label>Table Top Length</label>
         <div class="input-wrapper">
           <input
             type="range"
@@ -139,6 +286,7 @@
             min="450"
             max="3000"
             value="1200"
+            step="10"
           />
           <input
             type="number"
@@ -150,11 +298,18 @@
           <span class="unit">mm</span>
         </div>
       </div>
-      
+
       <div class="control-group">
-        <label>Table Top Width:</label>
+        <label>Table Top Width</label>
         <div class="input-wrapper">
-          <input type="range" id="topWidth" min="450" max="3000" value="800" />
+          <input
+            type="range"
+            id="topWidth"
+            min="450"
+            max="3000"
+            value="800"
+            step="10"
+          />
           <input
             type="number"
             id="topWidthNum"
@@ -165,36 +320,36 @@
           <span class="unit">mm</span>
         </div>
       </div>
-      
+
       <div class="control-group">
-        <label>Table Top Thickness:</label>
+        <label>Table Top Thickness</label>
         <div class="input-wrapper">
           <input type="range" id="topHeight" min="5" max="80" value="40" />
           <input type="number" id="topHeightNum" min="5" max="80" value="40" />
           <span class="unit">mm</span>
         </div>
       </div>
-      
+
       <div class="control-group">
-        <label>Bar/Leg Width:</label>
+        <label>Bar/Leg Width</label>
         <div class="input-wrapper">
           <input type="range" id="barWidth" min="5" max="80" value="30" />
           <input type="number" id="barWidthNum" min="5" max="80" value="30" />
           <span class="unit">mm</span>
         </div>
       </div>
-      
+
       <div class="control-group">
-        <label>Bar/Leg Height:</label>
+        <label>Bar/Leg Height</label>
         <div class="input-wrapper">
           <input type="range" id="barHeight" min="5" max="80" value="50" />
           <input type="number" id="barHeightNum" min="5" max="80" value="50" />
           <span class="unit">mm</span>
         </div>
       </div>
-      
+
       <div class="control-group">
-        <label>Leg Height:</label>
+        <label>Leg Height</label>
         <div class="input-wrapper">
           <input type="range" id="legHeight" min="300" max="1000" value="700" />
           <input
@@ -207,27 +362,64 @@
           <span class="unit">mm</span>
         </div>
       </div>
-      
+
       <button id="resetCamera">Reset Camera</button>
+
+      <div id="parts-info">
+        <h3>Parts List</h3>
+        <div id="parts-list"></div>
+      </div>
     </div>
-    
+
     <div id="canvas-container">
       <canvas id="three-canvas"></canvas>
     </div>
 
-    <script>
+    <div id="info-text">
+      <a href="https://github.com/signalwerk/miniTable" target="_blank"
+        >miniTable | table generator</a
+      >
+      <a href="https://signalwerk.ch/" target="_blank"> | by signalwerk</a>
+    </div>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
       // Controls toggle
-      const toggleControlsBtn = document.getElementById('toggle-controls');
-      const controlsPanel = document.getElementById('controls');
-      
+      const toggleControlsBtn = document.getElementById("toggle-controls");
+      const toggleControlsBtnText = document.getElementById(
+        "toggle-controls-text",
+      );
+      const controlsPanel = document.getElementById("controls");
+      const panelBackdrop = document.getElementById("panel-backdrop");
+
       // Initially hide the controls panel
-      controlsPanel.classList.add('hidden');
-      
-      toggleControlsBtn.addEventListener('click', () => {
-        controlsPanel.classList.toggle('hidden');
-        toggleControlsBtn.textContent = controlsPanel.classList.contains('hidden') ? '☰' : '×';
+      controlsPanel.classList.add("hidden");
+
+      function openPanel() {
+        controlsPanel.classList.remove("hidden");
+        toggleControlsBtnText.textContent = "×";
+        panelBackdrop.classList.add("visible");
+      }
+
+      function closePanel() {
+        controlsPanel.classList.add("hidden");
+        toggleControlsBtnText.textContent = "☰";
+        panelBackdrop.classList.remove("visible");
+      }
+
+      toggleControlsBtn.addEventListener("click", () => {
+        if (controlsPanel.classList.contains("hidden")) {
+          openPanel();
+        } else {
+          closePanel();
+        }
       });
-      
+
+      // Close panel when clicking outside
+      panelBackdrop.addEventListener("click", closePanel);
+
       // Shader definitions
       const vertexShader = `
         varying vec2 vUv;
@@ -239,7 +431,7 @@
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `;
-      
+
       const fragmentShader = `
         varying vec2 vUv;
         varying vec3 vPosition;
@@ -266,91 +458,91 @@
       // Initialize Three.js scene
       const canvasContainer = document.getElementById("canvas-container");
       const canvas = document.getElementById("three-canvas");
-      
+
       // Set canvas size to full window
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      
+
       // Create scene
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0xffeb3b); // Yellow background
-      
+
       // Calculate appropriate view size based on window dimensions
       function calculateViewSize() {
         // Inverse relationship: smaller viewSize = larger table appearance
         const baseSize = 600;
         const scaleFactor = 0.6; // Adjust this to control the rate of scaling
         const screenSize = Math.min(window.innerWidth, window.innerHeight);
-        
+
         // Smaller value = larger appearing table
-        return baseSize / (screenSize * scaleFactor / 1000);
+        return baseSize / ((screenSize * scaleFactor) / 1000);
       }
-      
+
       // Camera - Using OrthographicCamera instead of PerspectiveCamera
       let viewSize = calculateViewSize();
       const aspectRatio = window.innerWidth / window.innerHeight;
       const camera = new THREE.OrthographicCamera(
-        -viewSize * aspectRatio / 2,
-        viewSize * aspectRatio / 2,
+        (-viewSize * aspectRatio) / 2,
+        (viewSize * aspectRatio) / 2,
         viewSize / 2,
         -viewSize / 2,
         1,
-        10000
+        10000,
       );
-      
+
       // Position camera higher to see more from the top
-      camera.position.set(1000, -600, 1000);
+      camera.position.set(1000, -900, 1000);
       camera.lookAt(0, 0, 0);
-      
+
       // Renderer
       const renderer = new THREE.WebGLRenderer({
         canvas: canvas,
         antialias: true,
       });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      
+
       // OrbitControls
-      const controls = new THREE.OrbitControls(camera, canvas);
+      const controls = new OrbitControls(camera, canvas);
       controls.enableDamping = true;
       controls.dampingFactor = 0.1;
       controls.rotateSpeed = 0.5;
       controls.enablePan = true;
-      controls.minDistance = 500;  // Minimum zoom distance
+      controls.minDistance = 500; // Minimum zoom distance
       controls.maxDistance = 5000; // Maximum zoom distance
-      
+
       // Allow full rotation in all directions
       controls.minPolarAngle = 0;
       controls.maxPolarAngle = Math.PI;
-      
+
       let isAutoRotating = true;
       controls.autoRotate = isAutoRotating;
       controls.autoRotateSpeed = 1.0;
-      
+
       controls.addEventListener("start", function () {
         isAutoRotating = false;
         controls.autoRotate = false;
       });
-      
+
       // Group to hold all table parts
       const tableGroup = new THREE.Group();
       scene.add(tableGroup);
-      
+
       // Scale factor to make the model fit well in the scene
       const scaleFactor = 0.5;
       tableGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-      
+
       // Shader material for line-art effect with fixed thickness of 2
       const lineMaterial = new THREE.ShaderMaterial({
         uniforms: {
-          thickness: { value: 2.0 },  // Fixed line thickness of 2
+          thickness: { value: 1.5 },
           color: { value: new THREE.Color(0x000000) },
-          backgroundColor: { value: new THREE.Color(0xffffff) }
+          backgroundColor: { value: new THREE.Color(0xffffff) },
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
-        transparent: true
+        transparent: true,
       });
-      
+
       // Parameters
       let params = {
         topLength: 1200,
@@ -360,19 +552,19 @@
         barWidth: 30,
         barHeight: 50,
       };
-      
+
       // Create a box with the line-art shader
       function createBox(options) {
         // Create the box geometry
         const geometry = new THREE.BoxGeometry(
-          options.width, 
-          options.height, 
+          options.width,
+          options.height,
           options.depth,
         );
-        
+
         // Create the mesh with the line-art material
         const mesh = new THREE.Mesh(geometry, lineMaterial);
-        
+
         // Set position
         if (options.translate) {
           mesh.position.set(
@@ -381,37 +573,45 @@
             options.translate.z || 0,
           );
         }
-        
+
         tableGroup.add(mesh);
         return mesh;
       }
-      
+
       // Create table parts
       function createTable() {
-        // Remove all existing parts
+        // Clear existing parts
         while (tableGroup.children.length > 0) {
           const child = tableGroup.children[0];
           tableGroup.remove(child);
-          
-          // Dispose geometries to prevent memory leaks
+
           if (child.geometry) {
             child.geometry.dispose();
           }
         }
-        
+
+        // Parts tracking
+        const parts = [];
+
         // Table top
         createBox({
           width: params.topLength,
           height: params.topHeight,
           depth: params.topWidth,
         });
-        
-        // Calculate leg inset distances
+
+        parts.push({
+          count: 1,
+          title: "Table Top",
+          dimensions: `${params.topLength} × ${params.topWidth} × ${params.topHeight}`,
+        });
+
+        // Calculate leg positions
         const barSizeInset = Math.min(params.barWidth, params.barHeight) * 3;
         const lengthInset = barSizeInset;
         const widthInset = barSizeInset;
-        
-        // Legs
+
+        // Create legs
         const legPositions = [
           {
             x: params.topLength / 2 - barSizeInset - params.barWidth / 2,
@@ -430,7 +630,7 @@
             z: -params.topWidth / 2 + widthInset + params.barHeight / 2,
           },
         ];
-        
+
         legPositions.forEach((pos) => {
           createBox({
             width: params.barWidth,
@@ -443,13 +643,21 @@
             },
           });
         });
-        
-        // Support bars (front and back)
+
+        parts.push({
+          count: 4,
+          title: "Legs",
+          dimensions: `${params.barWidth} × ${params.barHeight} × ${params.legHeight}`,
+        });
+
+        // Front and back support bars
+        const frontBackBarWidth =
+          params.topLength -
+          barSizeInset * 2 +
+          4 * Math.min(params.barWidth, params.barHeight);
+
         createBox({
-          width:
-            params.topLength -
-            barSizeInset * 2 +
-            4 * Math.min(params.barWidth, params.barHeight),
+          width: frontBackBarWidth,
           height: params.barHeight,
           depth: params.barWidth,
           translate: {
@@ -457,12 +665,9 @@
             z: params.topWidth / 2 - widthInset + params.barWidth / 2,
           },
         });
-        
+
         createBox({
-          width:
-            params.topLength -
-            barSizeInset * 2 +
-            4 * Math.min(params.barWidth, params.barHeight),
+          width: frontBackBarWidth,
           height: params.barHeight,
           depth: params.barWidth,
           translate: {
@@ -470,69 +675,96 @@
             z: -(params.topWidth / 2 - widthInset + params.barWidth / 2),
           },
         });
-        
-        // Support bars (left and right)
+
+        parts.push({
+          count: 2,
+          title: "Support Bars",
+          dimensions: `${params.barWidth} × ${params.barHeight} × ${frontBackBarWidth}`,
+        });
+
+        // Left and right support bars
+        const sideBarDepth =
+          params.topWidth -
+          widthInset * 2 +
+          4 * Math.min(params.barWidth, params.barHeight);
+
         createBox({
           width: params.barWidth,
           height: params.barHeight,
-          depth:
-            params.topWidth -
-            widthInset * 2 +
-            4 * Math.min(params.barWidth, params.barHeight),
+          depth: sideBarDepth,
           translate: {
             x: params.topLength / 2 - barSizeInset + params.barWidth / 2,
             y: params.topHeight / 2 + params.barHeight / 2 + params.barHeight,
           },
         });
-        
+
         createBox({
           width: params.barWidth,
           height: params.barHeight,
-          depth:
-            params.topWidth -
-            widthInset * 2 +
-            4 * Math.min(params.barWidth, params.barHeight),
+          depth: sideBarDepth,
           translate: {
             x: -(params.topLength / 2 - barSizeInset + params.barWidth / 2),
             y: params.topHeight / 2 + params.barHeight / 2 + params.barHeight,
           },
         });
+
+        parts.push({
+          count: 2,
+          title: "Support Bars",
+          dimensions: `${params.barWidth} × ${params.barHeight} × ${sideBarDepth}`,
+        });
+
+        // Update parts list display
+        updatePartsInfo(parts);
       }
-      
+
+      // Update the parts information display
+      function updatePartsInfo(parts) {
+        const partsList = document.getElementById("parts-list");
+        partsList.innerHTML = "";
+
+        parts.forEach((part) => {
+          const partItem = document.createElement("div");
+          partItem.className = "part-item";
+          partItem.textContent = `${part.count} × ${part.title}: ${part.dimensions} mm`;
+          partsList.appendChild(partItem);
+        });
+      }
+
       // Initial table creation
       createTable();
-      
+
       // Handle window resize
       window.addEventListener("resize", () => {
         // Update canvas size
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
+
         // Recalculate view size based on new window dimensions
         viewSize = calculateViewSize();
         const newAspectRatio = window.innerWidth / window.innerHeight;
-        
+
         // Update camera
-        camera.left = -viewSize * newAspectRatio / 2;
-        camera.right = viewSize * newAspectRatio / 2;
+        camera.left = (-viewSize * newAspectRatio) / 2;
+        camera.right = (viewSize * newAspectRatio) / 2;
         camera.top = viewSize / 2;
         camera.bottom = -viewSize / 2;
         camera.updateProjectionMatrix();
-        
+
         // Update renderer
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
-      
+
       // Animation loop
       function animate() {
         requestAnimationFrame(animate);
-        
+
         controls.update(); // Required for OrbitControls
-        
+
         renderer.render(scene, camera);
       }
       animate();
-      
+
       // UI controls
       const sliders = {
         topLength: document.getElementById("topLength"),
@@ -542,7 +774,7 @@
         barWidth: document.getElementById("barWidth"),
         barHeight: document.getElementById("barHeight"),
       };
-      
+
       const numberInputs = {
         topLength: document.getElementById("topLengthNum"),
         topWidth: document.getElementById("topWidthNum"),
@@ -551,7 +783,7 @@
         barWidth: document.getElementById("barWidthNum"),
         barHeight: document.getElementById("barHeightNum"),
       };
-      
+
       // Update functions for sliders
       Object.keys(sliders).forEach((key) => {
         // Update number input when slider changes
@@ -561,7 +793,7 @@
           numberInputs[key].value = value;
           createTable();
         });
-        
+
         // Update slider when number input changes
         numberInputs[key].addEventListener("input", () => {
           const value = parseFloat(numberInputs[key].value);
@@ -569,21 +801,21 @@
           const min = parseFloat(sliders[key].min);
           const max = parseFloat(sliders[key].max);
           const clampedValue = Math.max(min, Math.min(max, value));
-          
+
           params[key] = clampedValue;
           numberInputs[key].value = clampedValue;
           sliders[key].value = clampedValue;
           createTable();
         });
       });
-      
+
       // Reset camera
       document.getElementById("resetCamera").addEventListener("click", () => {
         // Reset camera to initial top-down position
-        camera.position.set(1000, -600, 1000);
+        camera.position.set(1000, -900, 1000);
         camera.lookAt(0, 0, 0);
         controls.reset();
-        
+
         // Enable auto-rotation again
         isAutoRotating = true;
         controls.autoRotate = true;
