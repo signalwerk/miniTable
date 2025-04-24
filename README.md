@@ -25,3 +25,4 @@ Thanks to the following resources for inspiration and code snippets.
 - [threejs.org forum - How to render geometry edges](https://discourse.threejs.org/t/how-to-render-geometry-edges/5745/2)
 - [threejs.org forum - How to create this smooth cartoon style with outlines in three.js](https://discourse.threejs.org/t/how-to-create-this-smooth-cartoon-style-with-outlines-in-three-js/60862)
 - [Stack Overflow - How to get three.js linesegments to only render visible lines](https://stackoverflow.com/questions/56795062/how-to-get-three-js-linesegments-to-only-render-visible-lines/)
+- [Pencil Lines post-processing](https://github.com/mayacoda/pencil-lines)
